@@ -361,6 +361,11 @@ python3 {skill_dir}/scripts/humanness_score.py {article_path} --json --tier3 {ag
 
 **6.2 封面生成**：生成封面 3 组创意提示词（按 visual-prompts.md），选最佳 1 组调用 image_gen.py 生成。
 
+```bash
+python3 {skill_dir}/toolkit/image_gen.py --prompt "{选定的封面提示词}" --output {skill_dir}/output/{slug}-cover.png --size cover
+```
+（--size 取值：封面用 cover，内文配图用 article；多 provider 自动 fallback 已内置。）
+
 **6.3 封面验证**：
 - **交互模式**：展示封面，问用户"封面效果如何？"。用户 OK → 继续；不满意 → 调整提示词重新生成。
 - **全自动模式**：agent 自检——提示词中的实体是否在画面描述中可识别？如果提示词过于泛化（仅含"科技感""未来感"等抽象词，无具体实体），换一组提示词重试 1 次。
@@ -368,6 +373,14 @@ python3 {skill_dir}/scripts/humanness_score.py {article_path} --json --tier3 {ag
 **6.3b 风格锚定**：封面确认后，提取视觉锚点（色板 hex、风格关键词、画面调性），后续所有内文配图的提示词必须引用这组锚点，保证全文视觉一致。
 
 **6.4 内文配图**：分析文章结构，为每个需要配图的段落选择图片类型（infographic/scene/flowchart/comparison/framework/timeline），使用对应的结构化提示词模板生成 3-6 张配图提示词（按 visual-prompts.md）。批量调用 image_gen.py，替换 Markdown 占位符。
+
+对每张需要的配图，逐一调用：
+
+```bash
+python3 {skill_dir}/toolkit/image_gen.py --prompt "{该图的结构化提示词}" --output {skill_dir}/output/{slug}-fig{N}.png --size article
+```
+
+生成后把对应 Markdown 图片占位符替换为实际路径。
 
 **降级**：image_gen.py 支持多 provider 自动 fallback（按 config.yaml 中 providers 列表顺序尝试）。全部失败 → 输出提示词 + 备选图库关键词，继续。
 
